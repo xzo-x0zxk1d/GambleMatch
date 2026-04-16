@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GambleMatch — Next‑Gen Matchmaking</title>
+    <title>GambleMatch | #1 Gambling Matchmaking Platform</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="WinStormLogo.png">
     <!-- Font Awesome 6 & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D background effects -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -15,38 +25,36 @@
         }
 
         body {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Inter', sans-serif;
             overflow-x: hidden;
-            background: #03030f;
+            background: #000000;
             color: #fff;
         }
 
-        /* ========== VIDEO BACKGROUND (HIGH QUALITY) ========== */
-        .bg-video {
+        /* CANVAS 3D BACKGROUND */
+        #canvas3d {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: -2;
-            filter: brightness(0.55) contrast(1.2) saturate(1.3);
-            image-rendering: crisp-edges;
+            z-index: -3;
+            display: block;
         }
 
-        /* animated gradient overlay (vibrant) */
-        .dynamic-overlay {
+        /* gradient overlay */
+        .gradient-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 70% 30%, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.85) 100%);
-            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%);
+            z-index: -2;
         }
 
         /* noise texture */
-        .noise {
+        .noise-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -55,376 +63,531 @@
             pointer-events: none;
             z-index: -1;
             opacity: 0.08;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");
             background-repeat: repeat;
+            animation: noiseMove 10s infinite alternate;
+        }
+        @keyframes noiseMove {
+            0% { transform: scale(1); opacity: 0.06; }
+            100% { transform: scale(1.1); opacity: 0.12; }
         }
 
-        /* main container with glass morphism */
+        /* main content */
         .hero {
             position: relative;
-            z-index: 2;
+            z-index: 10;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 2rem;
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(3px);
         }
 
-        /* title with neon underline */
-        .title-glow {
-            font-size: 5.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #FFFFFF, #B4A9FF, #6C5CE7);
-            background-size: 200% auto;
+        /* epic title with glitch */
+        .epic-title {
+            font-size: 7rem;
+            font-weight: 900;
+            font-family: 'Orbitron', monospace;
+            position: relative;
+            animation: glitchText 4s infinite;
+            text-shadow: 0 0 20px rgba(108,92,231,0.8);
+        }
+        @keyframes glitchText {
+            0%, 100% { text-shadow: 0 0 10px #6c5ce7, 0 0 20px #6c5ce7; transform: skew(0deg); }
+            95% { text-shadow: 0 0 10px #6c5ce7; transform: skew(0deg); }
+            96% { text-shadow: -3px 0 #ff3366, 3px 0 #33ff66; transform: skew(2deg); }
+            97% { text-shadow: 3px 0 #ff3366, -3px 0 #33ff66; transform: skew(-2deg); }
+            98% { text-shadow: 0 0 10px #6c5ce7; transform: skew(0deg); }
+        }
+        .rainbow-text {
+            background: linear-gradient(135deg, #FFFFFF, #FFD6FF, #B4A9FF, #6C5CE7, #B4A9FF);
+            background-size: 300% auto;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            animation: textShine 4s linear infinite;
-            letter-spacing: -0.02em;
+            animation: rainbowFlow 3s ease infinite;
         }
-        @keyframes textShine {
+        @keyframes rainbowFlow {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        /* badge container (3d tilt) */
-        .badge-collection {
+        /* holographic badges */
+        .holo-badge {
             display: inline-flex;
-            gap: 1rem;
-            background: rgba(15, 15, 35, 0.5);
-            backdrop-filter: blur(12px);
-            padding: 0.7rem 1.6rem;
-            border-radius: 80px;
-            border: 1px solid rgba(255,255,255,0.25);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            gap: 1.5rem;
+            background: rgba(10, 10, 30, 0.5);
+            backdrop-filter: blur(20px);
+            padding: 0.8rem 2rem;
+            border-radius: 100px;
+            border: 1px solid rgba(108,92,231,0.7);
+            box-shadow: 0 0 30px rgba(108,92,231,0.4);
             margin-left: 1rem;
+            transform: perspective(800px) rotateX(3deg);
         }
-        .badge-collection i {
-            font-size: 1.9rem;
-            transition: 0.2s;
-            filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+        .holo-badge i {
+            font-size: 2.3rem;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
         }
-        .badge-collection i:hover {
-            transform: translateY(-3px) scale(1.1);
+        .holo-badge i:hover {
+            transform: translateY(-6px) scale(1.15);
         }
-        .fa-gift { color: #ffb347; }
-        .fa-gem { color: #00e0ff; text-shadow: 0 0 4px #00e0ff; }
-        .fa-confetti { color: #f9d56e; }
+        .fa-gift { color: #ffaa55; text-shadow: 0 0 10px #ffaa55; }
+        .fa-gem { color: #44ddff; text-shadow: 0 0 10px #44ddff; }
+        .fa-confetti { color: #ffdd77; text-shadow: 0 0 10px #ffdd77; }
 
-        /* typewriter with neon border */
-        .typewriter-container {
+        /* cyber typewriter */
+        .cyber-typewriter {
             margin: 2rem 0;
         }
-        .typewriter-text {
-            font-size: 1.7rem;
+        .typewriter-cyber {
+            font-size: 1.9rem;
             font-weight: 500;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
-            padding: 0.8rem 2rem;
-            border-radius: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(16px);
+            padding: 1rem 2.5rem;
+            border-radius: 70px;
             font-family: 'Fira Code', monospace;
-            border: 1px solid rgba(0, 255, 255, 0.5);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
-            letter-spacing: 1px;
+            border: 2px solid #6c5ce7;
+            box-shadow: 0 0 30px rgba(108,92,231,0.5);
+            letter-spacing: 2px;
         }
 
-        /* CTA card — futuristic glass */
-        .cta-neon {
-            background: rgba(10, 10, 25, 0.6);
-            backdrop-filter: blur(24px);
-            border-radius: 48px;
-            padding: 1.8rem 2.8rem;
-            border: 1px solid rgba(0, 255, 255, 0.4);
+        /* CTA button — legendary */
+        .cta-legendary {
+            background: linear-gradient(135deg, rgba(30, 30, 70, 0.8), rgba(15, 15, 45, 0.9));
+            backdrop-filter: blur(30px);
+            border-radius: 70px;
+            padding: 2rem 3.5rem;
+            border: 2px solid rgba(108,92,231,0.7);
             cursor: pointer;
             width: 90%;
-            max-width: 560px;
-            transition: all 0.3s ease;
+            max-width: 620px;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.3);
             margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
         }
-        .cta-neon:hover {
-            transform: scale(1.02);
-            border-color: rgba(0, 255, 255, 0.9);
-            box-shadow: 0 0 35px rgba(0, 255, 255, 0.3);
-            background: rgba(20, 20, 45, 0.7);
+        .cta-legendary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(108,92,231,0.5), transparent);
+            transition: left 0.6s;
         }
-        .cta-flex {
+        .cta-legendary:hover::before {
+            left: 100%;
+        }
+        .cta-legendary:hover {
+            transform: scale(1.04);
+            border-color: #a594ff;
+            box-shadow: 0 0 60px rgba(108,92,231,0.7);
+        }
+        .cta-inner {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1.2rem;
-            font-size: 1.9rem;
-            font-weight: 600;
+            gap: 1.5rem;
+            font-size: 2.2rem;
+            font-weight: 800;
         }
-        .cta-flex i {
-            font-size: 2.6rem;
+        .cta-inner i {
+            font-size: 3.5rem;
             color: #5865F2;
-            filter: drop-shadow(0 0 8px #5865F2);
+            filter: drop-shadow(0 0 12px #5865F2);
         }
         .cta-sub {
-            margin-top: 0.8rem;
-            font-size: 0.85rem;
-            opacity: 0.8;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
         }
 
-        /* feature cards (grid) – high-end design */
-        .features {
+        /* feature cards — ultra premium */
+        .ultra-features {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 2rem;
-            margin-top: 4rem;
-            max-width: 1200px;
+            gap: 2.5rem;
+            margin-top: 5rem;
+            max-width: 1400px;
             width: 100%;
         }
-        .feat-card {
-            background: rgba(8, 8, 20, 0.6);
-            backdrop-filter: blur(16px);
-            border-radius: 32px;
-            padding: 1.5rem;
-            width: 250px;
+        .ultra-card {
+            background: rgba(5, 5, 20, 0.65);
+            backdrop-filter: blur(24px);
+            border-radius: 48px;
+            padding: 2rem 1.8rem;
+            width: 280px;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.15);
-            transition: 0.25s;
+            border: 1px solid rgba(108,92,231,0.4);
+            transition: all 0.35s;
         }
-        .feat-card:hover {
-            transform: translateY(-8px);
+        .ultra-card:hover {
+            transform: translateY(-12px);
             border-color: #6c5ce7;
-            box-shadow: 0 20px 30px -12px rgba(108,92,231,0.3);
+            box-shadow: 0 30px 45px -15px rgba(108,92,231,0.5);
+            background: rgba(25, 25, 55, 0.8);
         }
-        .feat-icon {
-            font-size: 2.6rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(145deg, #fff, #bbb);
+        .ultra-icon {
+            font-size: 3.2rem;
+            margin-bottom: 1.2rem;
+            background: linear-gradient(145deg, #fff, #c0b5ff);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
-        .feat-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
+        .ultra-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
+            font-family: 'Orbitron', monospace;
         }
-        .feat-desc {
-            font-size: 0.8rem;
-            opacity: 0.8;
+        .ultra-desc {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            line-height: 1.45;
         }
 
-        /* floating orbs (dynamic) */
-        .orb {
+        /* floating 3d orbs effect */
+        .orb-particle {
             position: fixed;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(108,92,231,0.2), transparent);
+            background: radial-gradient(circle, rgba(108,92,231,0.25), transparent);
             pointer-events: none;
-            z-index: 0;
-            filter: blur(50px);
+            z-index: 1;
+            filter: blur(70px);
+            animation: floatOrb 18s infinite alternate;
+        }
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+            100% { transform: translate(120px, 100px) scale(1.3); opacity: 0.7; }
         }
 
-        /* sound pill */
-        .sound-pill {
+        /* sound pill premium */
+        .sound-premium {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 0.8rem;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(15px);
+            padding: 12px 26px;
+            border-radius: 50px;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             cursor: pointer;
-            z-index: 20;
-            border: 1px solid rgba(255,255,255,0.2);
+            z-index: 50;
+            border: 1px solid rgba(108,92,231,0.6);
             transition: 0.2s;
+            font-weight: 600;
         }
-        .sound-pill:hover {
-            background: rgba(0,0,0,0.8);
-        }
-        .footer {
-            margin-top: 4rem;
-            font-size: 0.7rem;
-            opacity: 0.5;
-            text-align: center;
+        .sound-premium:hover {
+            background: rgba(0,0,0,0.9);
+            border-color: #6c5ce7;
         }
 
-        @media (max-width: 800px) {
-            .title-glow { font-size: 3rem; }
-            .badge-collection i { font-size: 1.2rem; }
-            .badge-collection { padding: 0.4rem 1rem; }
-            .typewriter-text { font-size: 1rem; padding: 0.5rem 1.2rem; }
-            .cta-flex { font-size: 1.3rem; }
-            .cta-flex i { font-size: 1.8rem; }
-            .feat-card { width: 200px; padding: 1rem; }
+        .footer-credit {
+            margin-top: 5rem;
+            font-size: 0.75rem;
+            opacity: 0.45;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 900px) {
+            .epic-title { font-size: 3.5rem; }
+            .holo-badge i { font-size: 1.4rem; }
+            .holo-badge { padding: 0.5rem 1.2rem; gap: 0.8rem; }
+            .typewriter-cyber { font-size: 1.1rem; padding: 0.6rem 1.4rem; }
+            .cta-inner { font-size: 1.4rem; }
+            .cta-inner i { font-size: 2.2rem; }
+            .ultra-card { width: 220px; padding: 1.2rem; }
+            .ultra-icon { font-size: 2.2rem; }
+            .ultra-title { font-size: 1.2rem; }
         }
         @media (max-width: 550px) {
-            .features { gap: 1rem; }
-            .feat-card { width: 170px; }
+            .ultra-features { gap: 1rem; }
+            .ultra-card { width: 180px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- HIGH QUALITY BACKGROUND VIDEO -->
-    <video id="bgVideo" class="bg-video" autoplay loop muted playsinline poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23000010'/%3E%3C/svg%3E">
-        <source src="video.mp4" type="video/mp4">
-    </video>
-    <div class="dynamic-overlay"></div>
-    <div class="noise"></div>
+    <!-- 3D CANVAS BACKGROUND -->
+    <canvas id="canvas3d"></canvas>
+    <div class="gradient-overlay"></div>
+    <div class="noise-overlay"></div>
 
-    <!-- floating decorative orbs -->
-    <div class="orb" style="width: 300px; height: 300px; top: 10%; left: -100px;"></div>
-    <div class="orb" style="width: 400px; height: 400px; bottom: -100px; right: -100px;"></div>
+    <!-- floating orbs -->
+    <div class="orb-particle" style="width: 450px; height: 450px; top: -100px; left: -100px;"></div>
+    <div class="orb-particle" style="width: 550px; height: 550px; bottom: -150px; right: -120px; animation-duration: 22s;"></div>
+    <div class="orb-particle" style="width: 350px; height: 350px; top: 50%; left: 70%; animation-duration: 15s;"></div>
 
-    <!-- sound widget -->
-    <div id="soundControl" class="sound-pill">
+    <!-- sound control -->
+    <div id="soundCtrl" class="sound-premium">
         <i id="soundIcon" class="fas fa-volume-up"></i>
-        <span id="soundLabel">Sound On</span>
+        <span id="soundText">Sound On</span>
     </div>
 
     <div class="hero">
         <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.5rem;">
-            <span class="title-glow">GambleMatch</span>
-            <div class="badge-collection">
+            <span class="epic-title rainbow-text">GambleMatch</span>
+            <div class="holo-badge">
                 <i class="fas fa-gift"></i>
                 <i class="fas fa-gem"></i>
                 <i class="fas fa-confetti"></i>
             </div>
         </div>
 
-        <div class="typewriter-container">
-            <div class="typewriter-text" id="typewriterDisplay"></div>
+        <div class="cyber-typewriter">
+            <div class="typewriter-cyber" id="typewriterEl"></div>
         </div>
 
-        <div class="cta-neon" id="joinServerBtn">
-            <div class="cta-flex">
+        <div class="cta-legendary" id="joinBtn">
+            <div class="cta-inner">
                 <i class="fab fa-discord"></i>
-                <span>Get Started →</span>
+                <span>⚡ Get Started ⚡</span>
             </div>
-            <div class="cta-sub">join the official hub • trusted middlemen • 21+ verified</div>
+            <div class="cta-sub">join the #1 gambling hub • trusted middlemen • ranked ELO • 24/7</div>
         </div>
 
-        <div class="features">
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fas fa-dice-d6"></i></div>
-                <div class="feat-title">Unlimited Bets</div>
-                <div class="feat-desc">Any item, any currency – free text offer.</div>
+        <div class="ultra-features">
+            <div class="ultra-card">
+                <div class="ultra-icon"><i class="fas fa-crown"></i></div>
+                <div class="ultra-title">Any Bet</div>
+                <div class="ultra-desc">Robux, cash, skins, fruits – unlimited free text offers.</div>
             </div>
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fas fa-globe"></i></div>
-                <div class="feat-title">Cross‑Trade</div>
-                <div class="feat-desc">Match across different games seamlessly.</div>
+            <div class="ultra-card">
+                <div class="ultra-icon"><i class="fas fa-globe"></i></div>
+                <div class="ultra-title">Cross-Trade</div>
+                <div class="ultra-desc">Match across different games instantly.</div>
             </div>
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fas fa-hand-peace"></i></div>
-                <div class="feat-title">Middleman System</div>
-                <div class="feat-desc">Request MM via tickets – zero drama.</div>
+            <div class="ultra-card">
+                <div class="ultra-icon"><i class="fas fa-shield-haltered"></i></div>
+                <div class="ultra-title">Middleman System</div>
+                <div class="ultra-desc">Request MM via tickets – zero risk.</div>
             </div>
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fas fa-chart-simple"></i></div>
-                <div class="feat-title">Ranked Mode</div>
-                <div class="feat-desc">Climb ELO leaderboard, earn respect.</div>
+            <div class="ultra-card">
+                <div class="ultra-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="ultra-title">Ranked Mode</div>
+                <div class="ultra-desc">Climb ELO leaderboard, prove your skill.</div>
             </div>
         </div>
-        <div class="footer">
-            <i class="fas fa-shield-haltered"></i> secure matchmaking • fair /roll & /coinflip • manual trade responsibility
+        <div class="footer-credit">
+            <i class="fas fa-dice-d6"></i> fair /roll & /coinflip • both delete channel • manual trade responsibility
         </div>
     </div>
 
+    <script type="module">
+        import * as THREE from 'three';
+
+        // setup scene, camera, renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // particle system (stars + glowing orbs)
+        const particleCount = 1800;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            // sphere distribution
+            const radius = 40 + Math.random() * 30;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            positions[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+            positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+            positions[i*3+2] = radius * Math.cos(phi);
+            
+            const color = new THREE.Color().setHSL(0.65 + Math.random() * 0.2, 0.8, 0.6);
+            colors[i*3] = color.r;
+            colors[i*3+1] = color.g;
+            colors[i*3+2] = color.b;
+        }
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const particleMaterial = new THREE.PointsMaterial({ size: 0.25, vertexColors: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending });
+        const particles = new THREE.Points(geometry, particleMaterial);
+        scene.add(particles);
+
+        // central glowing ring
+        const ringGeometry = new THREE.TorusGeometry(12, 0.25, 64, 400);
+        const ringMaterial = new THREE.MeshStandardMaterial({ color: 0x6c5ce7, emissive: 0x3a2c9e, emissiveIntensity: 0.8, metalness: 0.9 });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        scene.add(ring);
+
+        // floating small cubes (tech vibe)
+        const cubeGroup = [];
+        for (let i = 0; i < 60; i++) {
+            const size = 0.15 + Math.random() * 0.2;
+            const cubeGeo = new THREE.BoxGeometry(size, size, size);
+            const cubeMat = new THREE.MeshStandardMaterial({ color: 0x8a7cf5, emissive: 0x4a3cb5, emissiveIntensity: 0.4 });
+            const cube = new THREE.Mesh(cubeGeo, cubeMat);
+            cube.userData = {
+                speedX: (Math.random() - 0.5) * 0.01,
+                speedY: (Math.random() - 0.5) * 0.01,
+                speedZ: (Math.random() - 0.5) * 0.01,
+                radius: 18 + Math.random() * 15
+            };
+            cube.position.x = (Math.random() - 0.5) * 35;
+            cube.position.y = (Math.random() - 0.5) * 25;
+            cube.position.z = (Math.random() - 0.5) * 20 - 15;
+            scene.add(cube);
+            cubeGroup.push(cube);
+        }
+
+        // lights
+        const ambientLight = new THREE.AmbientLight(0x222222);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0x9b8cff, 1);
+        pointLight.position.set(10, 10, 15);
+        scene.add(pointLight);
+        const backLight = new THREE.PointLight(0x4a3cb5, 0.5);
+        backLight.position.set(-5, -5, -10);
+        scene.add(backLight);
+
+        // animation
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.008;
+            
+            particles.rotation.y = time * 0.1;
+            particles.rotation.x = Math.sin(time * 0.2) * 0.1;
+            
+            ring.rotation.x = Math.sin(time * 0.3) * 0.3;
+            ring.rotation.y = time * 0.4;
+            ring.rotation.z = Math.cos(time * 0.2) * 0.2;
+            
+            cubeGroup.forEach(cube => {
+                cube.rotation.x += cube.userData.speedX;
+                cube.rotation.y += cube.userData.speedY;
+                cube.rotation.z += cube.userData.speedZ;
+            });
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+
     <script>
         (function(){
-            // ========== 1. TYPEWRITER (smooth loop) ==========
+            // ========== TYPEWRITER ==========
             const phrases = [
                 "start roblox gambling now",
-                "bet anything, anywhere",
+                "bet anything you want",
                 "fair /roll & /coinflip",
                 "ranked + middleman"
             ];
-            let phraseIndex = 0;
-            let charIndex = 0;
-            let isDeleting = false;
-            const el = document.getElementById('typewriterDisplay');
-            const typeSpeed = 85;
-            const deleteSpeed = 45;
-            const pauseBetween = 2000;
-
-            function typeEffect() {
-                const current = phrases[phraseIndex];
-                if (isDeleting) {
-                    el.textContent = current.substring(0, charIndex - 1);
-                    charIndex--;
-                    if (charIndex === 0) {
-                        isDeleting = false;
-                        phraseIndex = (phraseIndex + 1) % phrases.length;
-                        setTimeout(typeEffect, 300);
+            let idx = 0, charPos = 0, deleting = false;
+            const el = document.getElementById('typewriterEl');
+            const typeSpeed = 75, delSpeed = 40, pauseTime = 2000;
+            
+            function type() {
+                const current = phrases[idx];
+                if (deleting) {
+                    el.textContent = current.substring(0, charPos - 1);
+                    charPos--;
+                    if (charPos === 0) {
+                        deleting = false;
+                        idx = (idx + 1) % phrases.length;
+                        setTimeout(type, 300);
                     } else {
-                        setTimeout(typeEffect, deleteSpeed);
+                        setTimeout(type, delSpeed);
                     }
                 } else {
-                    el.textContent = current.substring(0, charIndex + 1);
-                    charIndex++;
-                    if (charIndex === current.length) {
-                        isDeleting = true;
-                        setTimeout(typeEffect, pauseBetween);
+                    el.textContent = current.substring(0, charPos + 1);
+                    charPos++;
+                    if (charPos === current.length) {
+                        deleting = true;
+                        setTimeout(type, pauseTime);
                     } else {
-                        setTimeout(typeEffect, typeSpeed);
+                        setTimeout(type, typeSpeed);
                     }
                 }
             }
-            typeEffect();
-
-            // ========== 2. VIDEO & AUDIO AUTO-ON (with fallback) ==========
-            const video = document.getElementById('bgVideo');
+            type();
+            
+            // ========== VIDEO & AUDIO AUTOMATIC ON (with user interaction fallback) ==========
+            const video = document.createElement('video');
+            video.src = 'video.mp4';
+            video.loop = true;
+            video.muted = false;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.style.display = 'none';
+            document.body.appendChild(video);
+            
             const audio = new Audio('sound.mp3');
             audio.loop = true;
             audio.volume = 0.7;
             audio.preload = 'auto';
             let audioPlaying = false;
-
-            const soundWidget = document.getElementById('soundControl');
-            const soundIcon = document.getElementById('soundIcon');
-            const soundLabel = document.getElementById('soundLabel');
-
-            // attempt to start audio automatically (requires user interaction on most browsers)
-            function enableAudio() {
-                if (audioPlaying) return;
-                const promise = audio.play();
-                if (promise !== undefined) {
-                    promise.then(() => {
+            
+            const soundBtn = document.getElementById('soundCtrl');
+            const soundIconSpan = document.getElementById('soundIcon');
+            const soundTextSpan = document.getElementById('soundText');
+            
+            // force auto-play (most browsers require user interaction, but we try every method)
+            function attemptAutoPlay() {
+                video.play().catch(e => console.log("video autoplay blocked, waiting for click"));
+                const audioPromise = audio.play();
+                if (audioPromise !== undefined) {
+                    audioPromise.then(() => {
                         audioPlaying = true;
-                        soundIcon.className = 'fas fa-volume-up';
-                        soundLabel.innerText = 'Sound On';
-                        // sync audio with video
-                        if (!video.paused) {
-                            audio.currentTime = video.currentTime;
-                        }
+                        soundIconSpan.className = 'fas fa-volume-up';
+                        soundTextSpan.innerText = 'Sound On';
+                        // sync video with audio time (keep them together)
+                        setInterval(() => {
+                            if (audioPlaying && !audio.paused && video.currentTime) {
+                                if (Math.abs(audio.currentTime - video.currentTime) > 0.3) {
+                                    audio.currentTime = video.currentTime;
+                                }
+                            }
+                        }, 500);
                     }).catch(() => {
-                        // autoplay blocked, show muted state
-                        soundIcon.className = 'fas fa-volume-mute';
-                        soundLabel.innerText = 'Sound Off';
                         audioPlaying = false;
+                        soundIconSpan.className = 'fas fa-volume-mute';
+                        soundTextSpan.innerText = 'Sound Off';
                     });
                 }
             }
-
-            // try autoplay after a short delay (some browsers allow if video is muted)
-            setTimeout(() => {
-                enableAudio();
-            }, 300);
-
-            // manual toggle
-            soundWidget.addEventListener('click', () => {
+            
+            // try autoplay after page load
+            setTimeout(attemptAutoPlay, 100);
+            
+            // manual toggle if autoplay blocked
+            soundBtn.addEventListener('click', () => {
                 if (!audioPlaying) {
                     const p = audio.play();
                     if (p) {
                         p.then(() => {
                             audioPlaying = true;
-                            soundIcon.className = 'fas fa-volume-up';
-                            soundLabel.innerText = 'Sound On';
-                            if (video.paused) video.play();
-                            audio.currentTime = video.currentTime;
+                            soundIconSpan.className = 'fas fa-volume-up';
+                            soundTextSpan.innerText = 'Sound On';
+                            video.play();
                         }).catch(() => {
                             alert('⚠️ Click anywhere on the page first to enable sound.');
                         });
@@ -432,62 +595,18 @@
                 } else {
                     audio.pause();
                     audioPlaying = false;
-                    soundIcon.className = 'fas fa-volume-mute';
-                    soundLabel.innerText = 'Sound Off';
+                    soundIconSpan.className = 'fas fa-volume-mute';
+                    soundTextSpan.innerText = 'Sound Off';
                 }
             });
-
-            // sync audio to video when playing
-            video.addEventListener('timeupdate', () => {
-                if (audioPlaying && !audio.paused) {
-                    const drift = Math.abs(audio.currentTime - video.currentTime);
-                    if (drift > 0.2) {
-                        audio.currentTime = video.currentTime;
-                    }
-                }
+            
+            // ========== DISCORD REDIRECT ==========
+            const JOIN_LINK = "https://discord.gg/smxxKFPHZw";
+            document.getElementById('joinBtn').addEventListener('click', () => {
+                window.open(JOIN_LINK, '_blank');
             });
-
-            // ensure video starts (some browsers need user interaction, but we try)
-            video.play().catch(e => console.log("video autoplay waiting for interaction"));
-
-            // ========== 3. DYNAMIC PARTICLES (glowing dots) ==========
-            function createParticles() {
-                const container = document.body;
-                for (let i = 0; i < 80; i++) {
-                    const dot = document.createElement('div');
-                    dot.style.position = 'fixed';
-                    dot.style.width = Math.random() * 4 + 1 + 'px';
-                    dot.style.height = dot.style.width;
-                    dot.style.background = 'rgba(255,255,255,0.4)';
-                    dot.style.borderRadius = '50%';
-                    dot.style.pointerEvents = 'none';
-                    dot.style.zIndex = '1';
-                    dot.style.left = Math.random() * 100 + '%';
-                    dot.style.top = Math.random() * 100 + '%';
-                    dot.style.animation = `floatParticle ${Math.random() * 10 + 8}s infinite linear`;
-                    dot.style.opacity = Math.random() * 0.5;
-                    container.appendChild(dot);
-                }
-            }
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes floatParticle {
-                    0% { transform: translateY(0px) rotate(0deg); opacity: 0; }
-                    20% { opacity: 0.6; }
-                    80% { opacity: 0.3; }
-                    100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
-            createParticles();
-
-            // ========== 4. REDIRECT TO DISCORD ==========
-            const DISCORD_INVITE = "https://discord.gg/smxxKFPHZw";
-            const ctaBtn = document.getElementById('joinServerBtn');
-            ctaBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.open(DISCORD_INVITE, '_blank');
-            });
+            
+            console.log("🔥 GambleMatch ULTIMATE loaded — 3D background + auto-sound ready");
         })();
     </script>
 </body>
